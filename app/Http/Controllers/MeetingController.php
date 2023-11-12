@@ -6,7 +6,6 @@ use App\Http\Requests\MeetingStoreRequest;
 use App\Models\Meeting;
 use App\Models\User;
 use App\Services\MeetingService;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -66,8 +65,6 @@ class MeetingController extends Controller
             $output = true;
         } catch (\Exception|\error $error) {
             DB::rollBack();
-
-            dd($error);
         }
 
         if ($output) {
@@ -98,20 +95,26 @@ class MeetingController extends Controller
      */
     public function edit($id): View
     {
-        dd('not completed due to short time');
-        return view('', compact(''));
+        $meeting = Meeting::whereId($id)->firstOrFail();
+        $users = User::get(['id', 'name']);
+        return view('meetings.edit', compact('meeting', 'users'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param MeetingStoreRequest $request
+     * @param int $id
      * @return RedirectResponse
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function update(MeetingStoreRequest $request, $id): RedirectResponse
     {
+        $meeting = Meeting::whereId($id)->firstOrFail();
 
+        $meeting->update($request->validated());
+
+        alert()->success('Updated', 'Meeting Updated Successfully');
+        return redirect()->route('meetings.index');
     }
 
     /**
